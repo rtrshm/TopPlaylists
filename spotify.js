@@ -3,8 +3,6 @@ const axios = require('axios');
 const crypto = require('crypto');
 const client_id = process.env.SPOTIFY_CLIENT_ID;
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
-const host = process.env.HOST;
-const redirect_uri = `${host}/spotifyCallback`;
 var access_token, refresh_token;
 var defaultHeaders = { 'content-type': 'application/x-www-form-urlencoded' };
 
@@ -16,6 +14,8 @@ var stateKey = 'spotify_auth_state';
 
 const logWithTimestamp = (msg) =>
     console.log(`[${new Date().toLocaleString()}]: ${msg}`);
+
+let make_redirect_uri = (hostname) => `http://${hostname}:6968/spotifyCallback`;
 
 module.exports = {
     refreshToken: async () => {
@@ -57,6 +57,8 @@ module.exports = {
         playlist-modify-public \
         playlist-modify-private';
 
+        var redirect_uri = make_redirect_uri(req.hostname);
+
         const authQueryParams = new URLSearchParams({
             response_type: 'code',
             client_id: client_id,
@@ -76,6 +78,7 @@ module.exports = {
         var state = req.query.state || null;
         var storedState = req.cookies ? req.cookies[stateKey] : null;
 
+        var redirect_uri = make_redirect_uri(req.hostname);
         if (state === null || state !== storedState) {
             logWithTimestamp(`spotifyCallback: State mismatch.`);
             res.status(400);

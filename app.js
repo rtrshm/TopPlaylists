@@ -5,9 +5,7 @@ const spotifyApi = require('./spotify.js');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const topPlaylists = require('./topPlaylists.js');
-
-const host = process.env.HOST;
-const port = parseInt(host.substring(host.length - 4, host.length));
+const port = process.env.PORT;
 
 const app = express();
 app.use(express.static(__dirname + '/public'))
@@ -31,7 +29,7 @@ let startTask = () => {
 };
 
 let startServer = async () => {
-    logWithTimestamp(`Authorize spotify at ${host}/authSpotify...`);
+    logWithTimestamp(`Authorize spotify at /authSpotify...`);
     while (!spotifyApi.authorized()) {
         await new Promise((r) => setTimeout(r, 5000));
     }

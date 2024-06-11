@@ -3,7 +3,6 @@ const crypto = require('node:crypto');
 const axios = require('axios');
 
 const api_key = process.env.LASTFM_API_KEY;
-const api_secret = process.env.LASTFM_SHARED_SECRET;
 const lastfmApiURL = 'http://ws.audioscrobbler.com/2.0';
 const username = process.env.LASTFM_USER;
 
