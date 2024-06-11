@@ -14,7 +14,7 @@ OVERALL_PLAYLIST_ID    # ^^^
 ```
 * node.js
 * Spotify/Last.fm API keys - go to the dev portal for keys
-* In the Spotify developer dash, set the callback url to match your chosen port (https://localhost:\<PORT\>/spotifyCallback" if running locally 
+* In the Spotify developer dash, set the callback url to match your chosen port (https://localhost:PORT/spotifyCallback" if running locally) 
 
 To run:
 1. `npm install`
