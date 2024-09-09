@@ -1,5 +1,6 @@
 require('dotenv').config();
 const axios = require('axios');
+const { log } = require('console');
 const crypto = require('crypto');
 const client_id = process.env.SPOTIFY_CLIENT_ID;
 const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
@@ -130,9 +131,15 @@ module.exports = {
         let config = {
             method: 'PUT',
             url: `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
-            headers: defaultHeaders,
+            headers: {
+                Authorization: `Bearer ${access_token}`,
+            },
             params: {
                 uris: songUris.join(),
+                range_start: 0,
+                range_length: songUris.length,
+            },
+            data: {
                 range_start: 0,
                 range_length: songUris.length,
             },
@@ -151,14 +158,43 @@ module.exports = {
                     );
                     await axios(config);
                 } else {
+                    logWithTimestamp(`updatePlaylist failed`);
                     throw e;
                 }
             }
         }
     },
 
+    updatePlaylistDescription: async (
+        playlistId,
+        playcount,
+        tracks_not_found
+    ) => {
+        let config = {
+            method: 'PUT',
+            url: `https://api.spotify.com/v1/playlists/${playlistId}`,
+            headers: {
+                Authorization: `Bearer ${access_token}`,
+            },
+            data: {
+                description:
+                    tracks_not_found > 0
+                        ? `${tracks_not_found} ${
+                              tracks_not_found !== 1 ? 'tracks' : 'track'
+                          } not found`
+                        : 'no tracks missing :D',
+            },
+        };
+
+        try {
+            await axios(config);
+        } catch (e) {
+            console.log(`Playlist details change boned; ${e.response.status}`);
+        }
+    },
+
     findSong: async (songName, artist) => {
-        let quotes = /['"]/g;
+        let quotes = /['",]/g;
         let querySongName = songName
             .replace(quotes, '')
             .replace('-', ' ')
@@ -168,7 +204,7 @@ module.exports = {
             .replace('-', ' ')
             .toLowerCase();
 
-        let queryString = `track:\"${querySongName.toLowerCase()}\" artist:\"${queryArtistName}\"`;
+        let queryString = `${queryArtistName} ${querySongName.toLowerCase()} `;
 
         let config = {
             method: 'GET',
@@ -178,7 +214,9 @@ module.exports = {
                 type: 'track',
                 limit: 50,
             },
-            headers: defaultHeaders,
+            headers: {
+                Authorization: `Bearer ${access_token}`,
+            },
         };
 
         var data;
@@ -195,9 +233,18 @@ module.exports = {
                 );
                 ({ data } = await axios(config));
             } else {
-                throw e;
+                logWithTimestamp(
+                    `Finding ${queryString} failed with ${
+                        e.response
+                            ? `response ${e.response.status}`
+                            : 'no response'
+                    }`
+                );
+                return undefined;
             }
-        } finally {
+        }
+
+        if (data) {
             if (data.tracks.items.length === 0) {
                 logWithTimestamp(
                     `Spotify failed to return any results for ${songName} by ${artist}.`
@@ -215,7 +262,9 @@ module.exports = {
             logWithTimestamp(
                 `Failed to find ${songName} by ${artist}. Query: ${queryString}`
             );
-            return undefined;
+        } else {
+            logWithTimestamp(`No data ??? ${queryString}`);
         }
+        return undefined;
     },
 };

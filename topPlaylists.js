@@ -23,19 +23,32 @@ module.exports = {
             logWithTimestamp(`Updating ${period} playlist...`);
             let topTracks = await lastfmApi.getTopTracks(period);
             let track_uris = [];
+            let plays = 0;
+            let tracks_not_found = 0;
             for (track of topTracks) {
+                let playcount = parseInt(track['playcount']);
+
                 let track_uri = await spotifyApi.findSong(
-                    track.name,
-                    track.artist.name
+                    `${track.name}`,
+                    `${track.artist.name}`
                 );
+
                 if (track_uri) {
                     track_uris.push(track_uri);
+                    plays += playcount;
+                } else {
+                    tracks_not_found += 1;
                 }
             }
 
             await spotifyApi.updatePlaylist(
                 playlists[period],
                 track_uris.slice(0, numTracks[period])
+            );
+            await spotifyApi.updatePlaylistDescription(
+                playlists[period],
+                plays,
+                tracks_not_found
             );
         }
 

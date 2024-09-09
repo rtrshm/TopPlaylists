@@ -6,6 +6,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const topPlaylists = require('./topPlaylists.js');
 const port = process.env.PORT;
+const REFRESH_INTERVAL = 60;
 
 const app = express();
 app.use(express.static(__dirname + '/public'))
@@ -25,7 +26,7 @@ let startTask = () => {
     topPlaylists.getAndUpdateTopTrackPlaylists();
     setInterval(async () => {
         await topPlaylists.getAndUpdateTopTrackPlaylists();
-    }, 24 * 60 * 60 * 1000);
+    }, REFRESH_INTERVAL * 60 * 1000);
 };
 
 let startServer = async () => {
